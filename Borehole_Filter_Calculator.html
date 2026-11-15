@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e7c66">
+</head>
+<body>
+<title>Borehole Filter Calculator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  :root {
+    --bg: #f3f6f4;
+    --panel: #ffffff;
+    --ink: #16231f;
+    --muted: #5b6e67;
+    --line: #dce6e1;
+    --accent: #0e7c66;
+    --accent-dark: #0b5f4f;
+    --accent-ink: #ffffff;
+    --warn-bg: #fdf3dd;
+    --warn-ink: #6b4e10;
+    --warn-border: #f3dfa2;
+    --bad-bg: #fce8e6;
+    --bad-ink: #7a2e27;
+    --bad-border: #f3c3be;
+    --good-bg: #e3f6ec;
+    --good-ink: #2b5240;
+    --good-border: #bfe8d3;
+    --field-bg: #ffffff;
+    --icon: #5b6e67;
+    --icon-good: #0f7a42;
+    --icon-warn: #9a6b07;
+    --icon-bad: #b42318;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121815; --panel: #1a211d; --ink: #e9ece4; --muted: #9aa8a0; --line: #334039;
+      --accent: #4fcba6; --accent-dark: #3fa88a; --accent-ink: #0b1310;
+      --warn-bg: #352b14; --warn-ink: #e8bf7c; --warn-border: #5c4a22;
+      --bad-bg: #3a201f; --bad-ink: #e59b98; --bad-border: #5c2d29;
+      --good-bg: #1d3324; --good-ink: #8fd6a6; --good-border: #2a4836;
+      --field-bg: #0f1512; --icon: #9aa8a0; --icon-good: #8fd6a6; --icon-warn: #e8bf7c; --icon-bad: #e59b98;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121815; --panel: #1a211d; --ink: #e9ece4; --muted: #9aa8a0; --line: #334039;
+    --accent: #4fcba6; --accent-dark: #3fa88a; --accent-ink: #0b1310;
+    --warn-bg: #352b14; --warn-ink: #e8bf7c; --warn-border: #5c4a22;
+    --bad-bg: #3a201f; --bad-ink: #e59b98; --bad-border: #5c2d29;
+    --good-bg: #1d3324; --good-ink: #8fd6a6; --good-border: #2a4836;
+    --field-bg: #0f1512; --icon: #9aa8a0; --icon-good: #8fd6a6; --icon-warn: #e8bf7c; --icon-bad: #e59b98;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.45;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  a { color: var(--accent); }
+  .wrap { max-width: 760px; margin: 0 auto; padding-block: 20px 60px; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand-icon { width: 42px; height: 42px; border-radius: 11px; background: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .brand-title { font-size: 1.1rem; font-weight: 700; line-height: 1.2; }
+  .brand-sub { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
+  .gear-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.68rem; font-family: inherit; padding: 4px; flex-shrink: 0; }
+  .gear-btn:focus-visible, .btn:focus-visible, .switch:focus-visible, .panel-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .gear-circle { width: 38px; height: 38px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; }
+
+  .input-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-bottom: 4px; }
+  @media (max-width: 560px) { .input-grid { grid-template-columns: 1fr; } }
+  .input-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 13px 16px; min-width: 0; }
+  .input-card-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .input-card label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em; color: var(--muted); }
+  .input-card .numwrap { display: flex; align-items: baseline; gap: 4px; }
+  .input-card input[type="number"] { width: 60px; font-size: 1.15rem; font-weight: 700; border: none; background: transparent; text-align: right; color: var(--ink); padding: 0; font-variant-numeric: tabular-nums; }
+  .input-card input[type="number"]:focus { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  .input-card .unit { font-size: 0.74rem; color: var(--muted); }
+  .input-card input[type="range"] { width: 100%; margin-top: 8px; accent-color: var(--accent); }
+  .grid-hint { font-size: 0.72rem; color: var(--muted); text-align: center; margin: 6px 0 14px; }
+
+  .results-row { display: flex; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
+  @media (max-width: 560px) { .results-row { flex-direction: column; } }
+  .fixed-stats { flex: 0 0 190px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  @media (max-width: 560px) { .fixed-stats { flex: 0 0 auto; flex-direction: row; justify-content: space-between; flex-wrap: wrap; } }
+  .fixed-stats .stat-label { font-size: 0.7rem; font-weight: 600; color: var(--muted); letter-spacing: 0.03em; }
+  .fixed-stats .stat-value { font-size: 1.25rem; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .fixed-stats .stat-sub { font-size: 0.7rem; color: var(--muted); }
+  .status-banner { flex: 1; min-width: 220px; border-radius: 14px; padding: 15px 18px; display: flex; flex-direction: column; gap: 6px; border: 1px solid; background: var(--good-bg); border-color: var(--good-border); }
+  .status-banner.attention { background: var(--warn-bg); border-color: var(--warn-border); }
+  .status-banner.outside { background: var(--bad-bg); border-color: var(--bad-border); }
+  .status-top { display: flex; align-items: center; gap: 12px; }
+  .status-title { font-size: 1rem; font-weight: 700; color: var(--good-ink); }
+  .status-banner.attention .status-title { color: var(--warn-ink); }
+  .status-banner.outside .status-title { color: var(--bad-ink); }
+  .status-body { font-size: 0.83rem; color: var(--good-ink); }
+  .status-banner.attention .status-body { color: var(--warn-ink); }
+  .status-banner.outside .status-body { color: var(--bad-ink); }
+  .status-detail { font-size: 0.78rem; color: var(--good-ink); padding-left: 40px; opacity: 0.95; display: flex; flex-direction: column; gap: 4px; }
+  .status-banner.attention .status-detail { color: var(--warn-ink); }
+  .status-banner.outside .status-detail { color: var(--bad-ink); }
+
+  .about-card { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 14px; font-size: 0.78rem; color: var(--muted); margin-bottom: 16px; }
+  .about-card svg { flex-shrink: 0; }
+  footer { color: var(--muted); font-size: 0.74rem; margin-top: 18px; text-align: center; }
+
+  .backdrop { position: fixed; inset: 0; background: rgba(10,15,12,0.35); opacity: 0; pointer-events: none; transition: opacity .18s ease; z-index: 40; }
+  .backdrop.open { opacity: 1; pointer-events: auto; }
+  .panel { position: fixed; top: 0; right: 0; height: 100%; width: min(440px, 100vw); background: var(--panel); box-shadow: -8px 0 24px rgba(0,0,0,0.15); transform: translateX(100%); transition: transform .2s ease; z-index: 41; overflow-y: auto; padding: calc(22px + env(safe-area-inset-top, 0px)) max(22px, env(safe-area-inset-right, 0px)) calc(90px + env(safe-area-inset-bottom, 0px)) 22px; }
+  .panel.open { transform: translateX(0); }
+  @media (prefers-reduced-motion: reduce) { .panel, .backdrop, .switch .knob { transition: none; } }
+  .panel-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+  .panel-title { font-size: 1.05rem; font-weight: 700; }
+  .panel-sub { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  .panel-close { width: 30px; height: 30px; border-radius: 8px; background: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .panel-section { margin-bottom: 18px; }
+  .panel-section-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .panel-section-head span.tag { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.03em; border-radius: 5px; padding: 2px 7px; }
+  .tag-locked { background: var(--line); color: var(--muted); }
+  .tag-editable { background: var(--good-bg); color: var(--good-ink); }
+  .tag-reference { background: var(--line); color: var(--muted); }
+  .panel-section-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em; color: var(--muted); text-transform: uppercase; }
+  .locked-box { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem; }
+  .locked-row { display: flex; justify-content: space-between; gap: 10px; }
+  .locked-row .k { color: var(--muted); }
+  .locked-row .v { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 2px; font-size: 0.8rem; gap: 10px; }
+  .switch { width: 36px; height: 21px; border-radius: 11px; border: none; cursor: pointer; position: relative; padding: 0; background: var(--line); transition: background .15s; flex-shrink: 0; }
+  .switch.on { background: var(--accent); }
+  .switch .knob { position: absolute; top: 2px; left: 2px; width: 17px; height: 17px; border-radius: 50%; background: #fff; transition: left .15s ease; }
+  .switch.on .knob { left: 17px; }
+  .panel-field { margin-bottom: 10px; min-width: 0; }
+  .panel-field label { font-size: 0.74rem; color: var(--muted); display: block; margin-bottom: 4px; }
+  .panel-field .row2 { display: flex; align-items: center; gap: 8px; }
+  .panel-field input, .panel-field select { flex: 1; width: 100%; padding: 8px 9px; border: 1px solid var(--line); border-radius: 8px; font-size: 0.84rem; background: var(--field-bg); color: var(--ink); min-width: 0; font-variant-numeric: tabular-nums; }
+  .panel-field .suffix { font-size: 0.76rem; color: var(--muted); flex-shrink: 0; }
+  .panel-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ref-table { width: 100%; font-size: 0.78rem; border-collapse: collapse; }
+  .ref-table td { padding: 4px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .ref-table td:last-child { text-align: right; font-weight: 600; padding-left: 8px; }
+  .ref-table td .src { display: block; font-weight: 400; color: var(--muted); font-size: 0.7rem; }
+  .layer-title { font-weight: 600; font-size: 0.82rem; margin: 10px 0 6px; }
+  .mini-caveat { font-size: 0.73rem; color: var(--muted); background: var(--bg); border-radius: 8px; padding: 7px 9px; margin-top: 6px; }
+  .panel-divider { height: 1px; background: var(--line); margin: 16px 0; }
+  .panel-buttons { display: flex; gap: 10px; margin-top: 18px; }
+  .btn { flex: 1; border-radius: 9px; padding: 10px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: 1px solid var(--line); background: var(--panel); color: var(--muted); font-family: inherit; }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.68rem; font-weight: 600; }
+  .pill.good { background: var(--good-bg); color: var(--good-ink); }
+  .pill.bad { background: var(--bad-bg); color: var(--bad-ink); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn-ink); }
+  .pill.pending { background: var(--line); color: var(--muted); }
+
+  .full-report { margin-top: 10px; }
+  .report-h { font-size: 0.74rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin: 14px 0 6px; }
+  .table-scroll { overflow-x: auto; }
+  table.result-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+  table.result-table th, table.result-table td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  table.result-table th { color: var(--muted); font-weight: 500; }
+  .report-note { font-size: 0.76rem; color: var(--muted); margin: 8px 0 0; }
+  .envelope-list { margin: 6px 0 0; padding-left: 18px; font-size: 0.78rem; }
+  .envelope-list li { margin-bottom: 3px; }
+</style>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+      </div>
+      <div>
+        <div class="brand-title">Borehole Filter Calculator</div>
+        <div class="brand-sub">Fe15 maize-cob biochar &middot; point-of-use tap</div>
+      </div>
+    </div>
+    <button type="button" class="gear-btn" id="openPanelBtn" aria-haspopup="true" aria-controls="advPanel">
+      <span class="gear-circle">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </span>
+      Advanced
+    </button>
+  </div>
+
+  <div class="input-grid">
+    <div class="input-card">
+      <div class="input-card-head">
+        <label for="nh3_cin_n">AMMONIA-N</label>
+        <div class="numwrap"><input type="number" id="nh3_cin_n" min="0" max="30" step="0.1" value="8"><span class="unit">mg/L N</span></div>
+      </div>
+      <input type="range" id="nh3_cin_s" min="0" max="30" step="0.1" value="8" aria-label="Ammonia-N slider">
+    </div>
+    <div class="input-card">
+      <div class="input-card-head">
+        <label for="no3_cin_n">NITRATE</label>
+        <div class="numwrap"><input type="number" id="no3_cin_n" min="0" max="120" step="1" value="80"><span class="unit">mg/L NO<sub>3</sub><sup>&minus;</sup></span></div>
+      </div>
+      <input type="range" id="no3_cin_s" min="0" max="120" step="1" value="80" aria-label="Nitrate slider">
+    </div>
+    <div class="input-card">
+      <div class="input-card-head">
+        <label for="ec_cin_n">E. COLI</label>
+        <div class="numwrap"><input type="number" id="ec_cin_n" min="0" max="20000" step="10" value="1000"><span class="unit">CFU/100mL</span></div>
+      </div>
+      <input type="range" id="ec_cin_s" min="0" max="20000" step="10" value="1000" aria-label="E. coli slider">
+    </div>
+  </div>
+  <div class="grid-hint">Type a number or drag a slider to set each borehole reading</div>
+
+  <div class="results-row">
+    <div class="fixed-stats">
+      <div>
+        <div class="stat-label">BIOCHAR IN BED</div>
+        <div class="stat-value" id="out_biochar">&mdash;</div>
+      </div>
+      <div>
+        <div class="stat-label">BED DEPTH</div>
+        <div class="stat-value" id="out_depth">&mdash;</div>
+      </div>
+      <div>
+        <div class="stat-label">REPLACE MEDIA EVERY</div>
+        <div class="stat-value" id="out_life">&mdash;</div>
+        <div class="stat-sub" id="out_life_by">&nbsp;</div>
+      </div>
+    </div>
+    <div class="status-banner" id="statusBanner" role="status" aria-live="polite">
+      <div class="status-top">
+        <span id="statusIcon"></span>
+        <div>
+          <div class="status-title" id="statusTitle">&nbsp;</div>
+          <div class="status-body" id="statusBody">&nbsp;</div>
+        </div>
+      </div>
+      <div class="status-detail" id="statusDetail"></div>
+    </div>
+  </div>
+
+  <div class="about-card">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+    <span id="aboutText">About this biochar.</span>
+  </div>
+
+  <footer>
+    Preliminary sizing tool implementing Equations 3.1&ndash;3.4 (Chapter 3), with this study's measured Fe15 isotherm constants and HYDRUS-1D derived bed-life factors. Tap <strong>Advanced</strong> for the full technical report, every assumption, and the fields you can change.<br>
+    Version 2.2, 15 November 2026. Source attributions corrected after fact-check.
+  </footer>
+
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+<div class="panel" id="advPanel" aria-hidden="true">
+  <div class="panel-head">
+    <div>
+      <div class="panel-title">Advanced settings</div>
+      <div class="panel-sub">Engineers only. Changes apply to every calculation.</div>
+    </div>
+    <button type="button" class="panel-close" id="closePanelBtn" aria-label="Close advanced settings">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  </div>
+
+  <div id="envelopeBannerFull" class="mini-caveat" style="margin-bottom:16px;"></div>
+
+  <div class="panel-section">
+    <div class="panel-section-head"><span class="panel-section-title">Biochar recipe</span><span class="tag tag-locked">LOCKED</span></div>
+    <div class="locked-box">
+      <div class="locked-row"><span class="k">Feedstock</span><span class="v">Maize cob, sieved 1&ndash;2 mm</span></div>
+      <div class="locked-row"><span class="k">Pyrolysis</span><span class="v">412&ndash;457&deg;C, 2 h hold</span></div>
+      <div class="locked-row"><span class="k">Iron treatment</span><span class="v">15 g/L FeCl3 soak, 2 h (Fe15)</span></div>
+      <div class="locked-row"><span class="k">K<sub>F</sub>, 1/n (NH3-N)</span><span class="v">0.252 mg/g, 0.605 (R&sup2; 0.951)</span></div>
+      <div class="locked-row"><span class="k">K<sub>F</sub>, 1/n (NO3&minus;)</span><span class="v">0.387 mg/g, 0.445 (R&sup2; 0.947)</span></div>
+    </div>
+    <div class="toggle-row">
+      <span>Use a different batch's measured K<sub>F</sub> / 1/n</span>
+      <button type="button" class="switch" id="overrideSwitch" aria-pressed="false" aria-label="Use a different batch's constants"><span class="knob"></span></button>
+    </div>
+    <div id="overrideFields" hidden>
+      <div class="panel-grid2">
+        <div class="panel-field"><label for="nh3_KF">K<sub>F</sub> (NH3-N), mg/g</label><input type="number" id="nh3_KF" value="0.252" step="0.001"></div>
+        <div class="panel-field"><label for="nh3_invn">1/n (NH3-N)</label><input type="number" id="nh3_invn" value="0.605" step="0.001"></div>
+      </div>
+      <div class="panel-grid2">
+        <div class="panel-field"><label for="no3_KF">K<sub>F</sub> (NO3&minus;), mg/g</label><input type="number" id="no3_KF" value="0.387" step="0.001"></div>
+        <div class="panel-field"><label for="no3_invn">1/n (NO3&minus;)</label><input type="number" id="no3_invn" value="0.445" step="0.001"></div>
+      </div>
+      <div class="mini-caveat">Enter constants from a 24 h batch isotherm of the batch you will actually use. Bed life scales almost one-for-one with K<sub>F</sub> (HYDRUS-1D: &plusmn;30% K<sub>F</sub> gave &plusmn;29.5 to 29.7% breakthrough time).</div>
+    </div>
+    <div id="lockedFieldsDisplay" class="mini-caveat">Using this study's measured Fe15 constants: batch isotherms at 5 g/L, 25 mL, 24 h, C<sub>0</sub> 2&ndash;15 mg/L NH3-N and 10&ndash;80 mg/L NO3&minus;.</div>
+  </div>
+
+  <div class="panel-divider"></div>
+
+  <div class="panel-section">
+    <div class="panel-section-head"><span class="panel-section-title">Site setup</span><span class="tag tag-editable">EDITABLE</span></div>
+    <div class="panel-field"><label for="Q_design">Design flow rate</label><div class="row2"><input type="number" id="Q_design" value="3" step="0.1"><span class="suffix">L/min</span></div></div>
+    <div class="panel-field"><label for="Q_max">Max flow rate</label><div class="row2"><input type="number" id="Q_max" value="4" step="0.1"><span class="suffix">L/min</span></div></div>
+    <div class="panel-field"><label for="diameter">Housing internal diameter</label><div class="row2"><input type="number" id="diameter" value="160" step="1"><span class="suffix">mm</span></div></div>
+    <div class="panel-field"><label for="dailyDraw">Household daily draw (drinking and cooking)</label><div class="row2"><input type="number" id="dailyDraw" value="60" step="5"><span class="suffix">L/day</span></div></div>
+    <div class="panel-field">
+      <label for="pumpHead">Rated pump head <span class="pill pending">pending real tank-height measurement</span></label>
+      <div class="row2"><input type="number" id="pumpHead" value="30" step="1"><span class="suffix">m</span></div>
+    </div>
+    <div class="panel-field"><label for="backwashV">Backwash velocity</label><div class="row2"><input type="number" id="backwashV" value="12" step="0.5"><span class="suffix">m/h</span></div></div>
+    <div class="panel-field">
+      <label for="bulkDensity">Biochar bulk density <span class="pill pending">literature value, not yet measured</span></label>
+      <div class="row2"><input type="number" id="bulkDensity" value="350" step="10"><span class="suffix">kg/m&sup3;</span></div>
+    </div>
+  </div>
+
+  <div class="panel-divider"></div>
+
+  <div class="panel-section">
+    <div class="panel-section-head"><span class="panel-section-title">Bed layers</span><span class="tag tag-editable">EDITABLE</span></div>
+    <div class="layer-title">Layer 1, gravel (structural)</div>
+    <div class="panel-grid2">
+      <div class="panel-field"><label for="g_eps">Porosity &epsilon;</label><input type="number" id="g_eps" value="0.40" step="0.01"></div>
+      <div class="panel-field"><label for="g_dp">Particle dp (mm)</label><input type="number" id="g_dp" value="5" step="0.1"></div>
+      <div class="panel-field"><label for="g_rho">Particle density (kg/m&sup3;)</label><input type="number" id="g_rho" value="2650" step="10"></div>
+      <div class="panel-field"><label for="g_ebct">Target EBCT (min) <span class="pill good">15 cm, as HYDRUS-1D</span></label><input type="number" id="g_ebct" value="1.0" step="0.1"></div>
+    </div>
+    <div class="layer-title">Layer 2, iron-modified biochar</div>
+    <div class="panel-grid2">
+      <div class="panel-field"><label for="b_eps">Porosity &epsilon; <span class="pill pending">as HYDRUS-1D</span></label><input type="number" id="b_eps" value="0.41" step="0.01"></div>
+      <div class="panel-field"><label for="b_dp">Particle dp (mm) <span class="pill good">sieve mid</span></label><input type="number" id="b_dp" value="1.5" step="0.1"></div>
+      <div class="panel-field"><label for="b_rho">Skeletal density (kg/m&sup3;)</label><input type="number" id="b_rho" value="1350" step="10"></div>
+      <div class="panel-field"><label for="b_ebct">Target EBCT (min) <span class="pill pending">2 min study minimum</span></label><input type="number" id="b_ebct" value="2.0" step="0.1"></div>
+    </div>
+    <div class="mini-caveat">Porosity 0.41 matches the saturated water content used in HYDRUS-1D (Carsel and Parrish, 1988), and 1.5 mm is the middle of the 1&ndash;2 mm sieve cut, so the calculator and the simulation describe the same bed. Skeletal density drives the Ergun and fluidization checks. Bulk density (Site setup) converts bed volume into biochar mass. Using one in place of the other gives wrong results.</div>
+  </div>
+
+  <div class="panel-divider"></div>
+
+  <div class="panel-section">
+    <div class="panel-section-head"><span class="panel-section-title">Bed life</span><span class="tag tag-editable">EDITABLE</span></div>
+    <div class="panel-grid2">
+      <div class="panel-field"><label for="nh3_U">Utilisation factor, NH3-N <span class="pill good">HYDRUS-1D</span></label><input type="number" id="nh3_U" value="0.80" step="0.01"></div>
+      <div class="panel-field"><label for="no3_U">Utilisation factor, NO3&minus; <span class="pill good">HYDRUS-1D</span></label><input type="number" id="no3_U" value="1.00" step="0.01"></div>
+    </div>
+    <div class="panel-field"><label for="targetDays">Target replacement interval (for the design table in the report)</label><div class="row2"><input type="number" id="targetDays" value="7" step="1"><span class="suffix">days</span></div></div>
+    <div class="mini-caveat">Share of the equilibrium bed capacity that is used before the outlet reaches its limit. HYDRUS-1D gave 0.80 for ammonia-N (the 0.5 mg/L limit sits on the leading edge of the front, unchanged across &plusmn;30% K<sub>F</sub>) and 1.03 for nitrate, entered here as 1.00.</div>
+  </div>
+
+  <div class="panel-divider"></div>
+
+  <div class="panel-section">
+    <div class="panel-section-head"><span class="panel-section-title">Targets and thresholds</span><span class="tag tag-editable">EDITABLE</span></div>
+    <div class="panel-grid2">
+      <div class="panel-field"><label for="nh3_ctarget">Limit, NH3-N <span class="pill good">design limit (NHMRC 0.5)</span></label><div class="row2"><input type="number" id="nh3_ctarget" value="0.5" step="0.05"><span class="suffix">mg/L</span></div></div>
+      <div class="panel-field"><label for="no3_ctarget">Limit, NO3&minus; <span class="pill good">SAZ, 10 as N</span></label><div class="row2"><input type="number" id="no3_ctarget" value="44.3" step="0.1"><span class="suffix">mg/L</span></div></div>
+    </div>
+    <div class="panel-field"><label for="ec_alpha">E. coli sticking efficiency &alpha; <span class="pill pending">not measured</span></label><div class="row2"><input type="number" id="ec_alpha" value="1" step="0.05" min="0" max="1"><span class="suffix">0 to 1</span></div></div>
+    <div class="mini-caveat">E. coli removal is computed from colloid filtration theory (Tufenkji and Elimelech, 2004) for a 1 &micro;m cell, the biochar grain size, porosity, depth and flow. &alpha; = 1 is the most favourable case (every collision sticks). HYDRUS-1D gave 3.7% removal at &alpha; = 1 and 0.4% at &alpha; = 0.1. Captured cells are held, not killed.</div>
+    <div class="panel-field" style="margin-top:10px;"><label for="ec_threshold">Safety threshold to trigger chlorination <span class="pill pending">needs QMRA derivation</span></label><div class="row2"><input type="number" id="ec_threshold" value="1" step="1"><span class="suffix">CFU/100mL</span></div></div>
+    <div class="panel-field"><label for="cl_target_residual">Target free chlorine residual</label><div class="row2"><input type="number" id="cl_target_residual" value="0.2" step="0.05"><span class="suffix">mg/L</span></div></div>
+    <div class="panel-field"><label for="cl_volume">Household vessel volume</label><div class="row2"><input type="number" id="cl_volume" value="20" step="1"><span class="suffix">L</span></div></div>
+    <div class="panel-field"><label for="cl_product">Chlorination product</label>
+      <select id="cl_product">
+        <option value="60">NaDCC tablet (about 60% available Cl)</option>
+        <option value="65">Calcium hypochlorite (about 65&ndash;70%)</option>
+        <option value="13">Sodium hypochlorite solution (about 10&ndash;15%)</option>
+      </select>
+    </div>
+    <div class="mini-caveat">Breakpoint chlorination needs a theoretical 7.6 mg Cl2 per mg NH3-N; the calculator uses 10 as a practical margin. The dose assumes the media is replaced on schedule, so filtered ammonia-N is at or below its limit.</div>
+  </div>
+
+  <div class="panel-divider"></div>
+
+  <div class="panel-section">
+    <div class="panel-section-head"><span class="panel-section-title">Validated ranges</span><span class="tag tag-reference">REFERENCE</span></div>
+    <table class="ref-table">
+      <tr><td>Influent NH3-N<span class="src">Batch isotherm C<sub>0</sub> range, this study</span></td><td>2&ndash;15 mg/L</td></tr>
+      <tr><td>Influent NO3&minus;<span class="src">Batch isotherm C<sub>0</sub> range, up to Hopley mean (Ndoziya et al., 2019)</span></td><td>10&ndash;80 mg/L</td></tr>
+      <tr><td>Influent E. coli<span class="src">Hopley mean 82 (Ndoziya et al., 2019) to Harare up to 30,000 cfu/100 mL (Zingoni et al., 2005, in Lapworth et al., 2017)</span></td><td>100&ndash;10,000 CFU/100mL</td></tr>
+      <tr><td>K<sub>F</sub> (NH3-N)<span class="src">Measured &plusmn;30%, tested in HYDRUS-1D</span></td><td>0.176&ndash;0.327</td></tr>
+      <tr><td>K<sub>F</sub> (NO3&minus;)<span class="src">Measured &plusmn;30%, tested in HYDRUS-1D</span></td><td>0.271&ndash;0.503</td></tr>
+      <tr><td>1/n (NH3-N)<span class="src">95% interval of this study's fit</span></td><td>0.35&ndash;0.86</td></tr>
+      <tr><td>1/n (NO3&minus;)<span class="src">95% interval of this study's fit</span></td><td>0.25&ndash;0.64</td></tr>
+      <tr><td>Flow rate<span class="src">Prototype design range</span></td><td>2&ndash;5 L/min</td></tr>
+      <tr><td>Diameter<span class="src">Around the 160 mm housing</span></td><td>140&ndash;180 mm</td></tr>
+    </table>
+  </div>
+
+  <div class="panel-divider"></div>
+
+  <div class="panel-section">
+    <div class="panel-section-head"><span class="panel-section-title">Full technical report</span></div>
+    <div id="fullReport" class="full-report"></div>
+  </div>
+
+  <div class="panel-buttons">
+    <button type="button" class="btn" id="resetBtn">Reset to measured defaults</button>
+    <button type="button" class="btn primary" id="doneBtn">Done</button>
+  </div>
+</div>
+
+<script>
+// ---------- Module 1: hydraulics (unchanged governing equations) ----------
+function superficialVelocity(Q_m3s, diameter_m) {
+  const A = Math.PI * (diameter_m / 2) ** 2;
+  return { v: Q_m3s / A, A };
+}
+function bedDepthFromEBCT(targetEBCT_s, v_m_s) { return targetEBCT_s * v_m_s; }
+function ergunPressureDropPerLength(v, eps, dp, mu, rho) {
+  const viscous = (150 * mu * (1 - eps) ** 2) / (dp ** 2 * eps ** 3) * v;
+  const inertial = (1.75 * rho * (1 - eps)) / (dp * eps ** 3) * v ** 2;
+  return viscous + inertial;
+}
+function layerPressureDrop(v, eps, dp, depth, mu, rho) { return ergunPressureDropPerLength(v, eps, dp, mu, rho) * depth; }
+function minFluidizationVelocity(eps, dp, mu, rhoFluid, rhoParticle, g = 9.81) {
+  const target = (1 - eps) * (rhoParticle - rhoFluid) * g;
+  if (target <= 0) return null;
+  let lo = 1e-6, hi = 1.0;
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    if (ergunPressureDropPerLength(mid, eps, dp, mu, rhoFluid) < target) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+// ---------- Modules 2 and 3: Freundlich capacity and bed life ----------
+function freundlichCapacity(Ce, KF, invN) { return Ce > 0 ? KF * Math.pow(Ce, invN) : 0; }
+// Equilibrium bed capacity against the influent, then volume treated before the limit.
+function bedLife(Cin, KF, invN, mass_g, U, Q_Lmin, draw_Lday, limit) {
+  if (!(Cin > limit)) return { needed: false };
+  const qe = freundlichCapacity(Cin, KF, invN);        // mg/g
+  const capacity = qe * mass_g;                         // mg
+  const exhaustMin = capacity / (Q_Lmin * Cin);         // min at design flow
+  const volume = capacity / Cin * U;                    // L usable
+  return { needed: true, qe, capacity, exhaustMin, limitMin: exhaustMin * U, volume, days: volume / draw_Lday };
+}
+
+// ---------- Module 3: E. coli by colloid filtration theory ----------
+// Tufenkji and Elimelech (2004) single-collector efficiency, 1 um cell, 20 C water.
+function singleCollectorEfficiency(eps, dc, U) {
+  const k = 1.380649e-23, T = 293.15, mu = 1.0e-3, dp = 1e-6, A = 6.5e-21, rhoP = 1080, rhoF = 998.2, g = 9.81;
+  const gam = Math.cbrt(1 - eps);
+  const As = 2 * (1 - gam ** 5) / (2 - 3 * gam + 3 * gam ** 5 - 2 * gam ** 6);
+  const Dinf = k * T / (3 * Math.PI * mu * dp);
+  const NR = dp / dc, NPe = U * dc / Dinf, NvdW = A / (k * T);
+  const NA = A / (12 * Math.PI * mu * (dp / 2) ** 2 * U);
+  const NG = 2 / 9 * (dp / 2) ** 2 * (rhoP - rhoF) * g / (mu * U);
+  return 2.4 * Math.cbrt(As) * NR ** -0.081 * NPe ** -0.715 * NvdW ** 0.052
+       + 0.55 * As * NR ** 1.675 * NA ** 0.125
+       + 0.22 * NR ** -0.24 * NG ** 1.11 * NvdW ** 0.053;
+}
+function eColiRemoval(eps, dc, U, alpha, depth) {
+  const eta0 = singleCollectorEfficiency(eps, dc, U);
+  const katt_over_v = 1.5 * (1 - eps) * eta0 * alpha / dc;   // per metre
+  return { eta0, fraction: 1 - Math.exp(-katt_over_v * depth) };
+}
+
+// ---------- Module 4: conditional chlorination ----------
+const BREAKPOINT_MASS_RATIO = 10;
+function totalChlorineDose(residualNH3N, targetResidual) { return residualNH3N * BREAKPOINT_MASS_RATIO + targetResidual; }
+function productDose(totalCl2_mgL, volume_L, availPct) { return (totalCl2_mgL * volume_L / 1000) / (availPct / 100); }
+
+const $ = (id) => document.getElementById(id);
+const num = (id) => parseFloat($(id).value);
+function fmt(x, d = 3) { return Number.isFinite(x) ? x.toFixed(d) : '&mdash;'; }
+function fmtDays(d) { if (!Number.isFinite(d)) return '&mdash;'; return d < 1 ? (d * 24).toFixed(1) + ' h' : d.toFixed(1) + ' days'; }
+
+function bindDual(numId, sliderId, onChange) {
+  const n = $(numId), s = $(sliderId);
+  n.addEventListener('input', () => { s.value = n.value; onChange(); });
+  s.addEventListener('input', () => { n.value = s.value; onChange(); });
+}
+
+// ---------- validated envelope (rule-based) ----------
+const VALIDATED_ENVELOPE = [
+  { id: 'nh3_cin_n', label: 'Influent NH3-N',   unit: 'mg/L',       min: 2,     max: 15,    source: "this study's batch isotherm range" },
+  { id: 'no3_cin_n', label: 'Influent NO3-',    unit: 'mg/L',       min: 10,    max: 80,    source: "this study's batch isotherm range" },
+  { id: 'ec_cin_n',  label: 'Influent E. coli', unit: 'CFU/100 mL', min: 100,   max: 10000, source: 'the design envelope (Ndoziya et al., 2019; Lapworth et al., 2017)' },
+  { id: 'nh3_KF',    label: 'KF (NH3-N)',       unit: 'mg/g',       min: 0.176, max: 0.327, source: 'measured value plus or minus 30 %, tested in HYDRUS-1D' },
+  { id: 'no3_KF',    label: 'KF (NO3-)',        unit: 'mg/g',       min: 0.271, max: 0.503, source: 'measured value plus or minus 30 %, tested in HYDRUS-1D' },
+  { id: 'nh3_invn',  label: '1/n (NH3-N)',      unit: '',           min: 0.35,  max: 0.86,  source: "95 % interval of this study's fit" },
+  { id: 'no3_invn',  label: '1/n (NO3-)',       unit: '',           min: 0.25,  max: 0.64,  source: "95 % interval of this study's fit" },
+  { id: 'Q_design',  label: 'Design flow rate', unit: 'L/min',      min: 2,     max: 5,     source: "this prototype's design range" },
+  { id: 'diameter',  label: 'Housing diameter', unit: 'mm',         min: 140,   max: 180,   source: 'the 160 mm housing this study specifies' },
+];
+function checkValidatedEnvelope() {
+  return VALIDATED_ENVELOPE
+    .map(item => ({ ...item, value: num(item.id) }))
+    .filter(item => Number.isFinite(item.value) && (item.value < item.min || item.value > item.max));
+}
+
+// ---------- panel ----------
+const panel = $('advPanel'), backdrop = $('backdrop');
+function openPanel() { panel.classList.add('open'); backdrop.classList.add('open'); panel.setAttribute('aria-hidden','false'); }
+function closePanel() { panel.classList.remove('open'); backdrop.classList.remove('open'); panel.setAttribute('aria-hidden','true'); }
+$('openPanelBtn').addEventListener('click', openPanel);
+$('closePanelBtn').addEventListener('click', closePanel);
+$('doneBtn').addEventListener('click', closePanel);
+backdrop.addEventListener('click', closePanel);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
+
+// ---------- constants: this study's measured Fe15 values ----------
+let overrideOn = false;
+const LOCKED_NH3 = { KF: 0.252, invN: 0.605 };
+const LOCKED_NO3 = { KF: 0.387, invN: 0.445 };
+function syncOverrideUI() {
+  const sw = $('overrideSwitch');
+  sw.classList.toggle('on', overrideOn);
+  sw.setAttribute('aria-pressed', String(overrideOn));
+  $('overrideFields').hidden = !overrideOn;
+  $('lockedFieldsDisplay').hidden = overrideOn;
+  if (!overrideOn) {
+    $('nh3_KF').value = LOCKED_NH3.KF; $('nh3_invn').value = LOCKED_NH3.invN;
+    $('no3_KF').value = LOCKED_NO3.KF; $('no3_invn').value = LOCKED_NO3.invN;
+  }
+}
+$('overrideSwitch').addEventListener('click', () => { overrideOn = !overrideOn; syncOverrideUI(); recompute(); });
+
+const DEFAULTS = {
+  nh3_cin_n: 8, no3_cin_n: 80, ec_cin_n: 1000,
+  Q_design: 3, Q_max: 4, diameter: 160, dailyDraw: 60, pumpHead: 30, backwashV: 12, bulkDensity: 350,
+  g_eps: 0.40, g_dp: 5, g_rho: 2650, g_ebct: 1.0,
+  b_eps: 0.41, b_dp: 1.5, b_rho: 1350, b_ebct: 2.0,
+  nh3_U: 0.80, no3_U: 1.00, targetDays: 7,
+  nh3_ctarget: 0.5, no3_ctarget: 44.3, ec_alpha: 1, ec_threshold: 1,
+  cl_target_residual: 0.2, cl_volume: 20,
+};
+$('resetBtn').addEventListener('click', () => {
+  Object.entries(DEFAULTS).forEach(([id, v]) => { if ($(id)) $(id).value = v; });
+  $('nh3_cin_s').value = DEFAULTS.nh3_cin_n; $('no3_cin_s').value = DEFAULTS.no3_cin_n; $('ec_cin_s').value = DEFAULTS.ec_cin_n;
+  $('cl_product').value = '60';
+  overrideOn = false; syncOverrideUI();
+  recompute();
+});
+
+['Q_design','Q_max','diameter','dailyDraw','pumpHead','backwashV','bulkDensity',
+ 'g_eps','g_dp','g_rho','g_ebct','b_eps','b_dp','b_rho','b_ebct','nh3_U','no3_U','targetDays',
+ 'nh3_KF','nh3_invn','no3_KF','no3_invn','nh3_ctarget','no3_ctarget',
+ 'ec_alpha','ec_threshold','cl_target_residual','cl_volume','cl_product'
+].forEach(id => { const el = $(id); el.addEventListener('input', recompute); el.addEventListener('change', recompute); });
+
+bindDual('nh3_cin_n','nh3_cin_s', recompute);
+bindDual('no3_cin_n','no3_cin_s', recompute);
+bindDual('ec_cin_n','ec_cin_s', recompute);
+
+const ICON_BAD = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--icon-bad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+const ICON_WARN = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--icon-warn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+const ICON_GOOD = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--icon-good)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+
+function recompute() {
+  const violations = checkValidatedEnvelope();
+
+  // ---- Module 1: fixed hydraulic design ----
+  const Qd_L = num('Q_design');
+  const Qd = Qd_L / 1000 / 60, Qm = num('Q_max') / 1000 / 60;
+  const dia = num('diameter') / 1000;
+  const { v: vd, A } = superficialVelocity(Qd, dia);
+  const { v: vm } = superficialVelocity(Qm, dia);
+  const mu = 1.0e-3, rho = 1000;
+  const layers = [
+    { name: 'Gravel',   eps: num('g_eps'), dp: num('g_dp') / 1000, rhoP: num('g_rho'), ebct: num('g_ebct') },
+    { name: 'Bio-char', eps: num('b_eps'), dp: num('b_dp') / 1000, rhoP: num('b_rho'), ebct: num('b_ebct') },
+  ];
+  const inputsOK = Qd > 0 && dia > 0 && layers.every(L => L.eps > 0 && L.eps < 1 && L.dp > 0 && L.ebct > 0) && num('bulkDensity') > 0 && num('dailyDraw') > 0;
+
+  let totalDPd = 0, totalDPm = 0, totalEBCT = 0, biocharDepth = NaN;
+  let rows1 = '', floorBreached = false, maxUmf = 0;
+  for (const L of layers) {
+    const depth = bedDepthFromEBCT(L.ebct * 60, vd);
+    const dpd = layerPressureDrop(vd, L.eps, L.dp, depth, mu, rho);
+    const dpm = layerPressureDrop(vm, L.eps, L.dp, depth, mu, rho);
+    const umf = minFluidizationVelocity(L.eps, L.dp, mu, rho, L.rhoP);
+    totalDPd += dpd; totalDPm += dpm; totalEBCT += L.ebct;
+    if (L.name === 'Bio-char' && L.ebct < 2) floorBreached = true;
+    if (umf !== null) maxUmf = Math.max(maxUmf, umf * 3600);
+    if (L.name === 'Bio-char') biocharDepth = depth;
+    rows1 += `<tr><td>${L.name}</td><td>${fmt(depth * 100, 1)} cm</td><td>${fmt(dpd / 1000, 3)} kPa</td><td>${fmt(dpm / 1000, 3)} kPa</td><td>${umf === null ? 'n/a' : fmt(umf * 3600, 1) + ' m/h'}</td></tr>`;
+  }
+  const headPa = num('pumpHead') * 9810;
+  const pressureOK = totalDPm < headPa * 0.5;
+  const backwashOK = num('backwashV') >= maxUmf;
+  const biocharMass_kg = A * biocharDepth * num('bulkDensity');
+  const mass_g = biocharMass_kg * 1000;
+
+  $('out_biochar').textContent = inputsOK ? fmt(biocharMass_kg, 2) + ' kg' : 'check inputs';
+  $('out_depth').textContent = inputsOK ? fmt(biocharDepth * 100, 1) + ' cm' : '—';
+
+  // ---- Modules 2 and 3: bed life against the influent ----
+  const draw = num('dailyDraw');
+  const nh3 = bedLife(num('nh3_cin_n'), num('nh3_KF'), num('nh3_invn'), mass_g, num('nh3_U'), Qd_L, draw, num('nh3_ctarget'));
+  const no3 = bedLife(num('no3_cin_n'), num('no3_KF'), num('no3_invn'), mass_g, num('no3_U'), Qd_L, draw, num('no3_ctarget'));
+  let governing = null;
+  if (nh3.needed && no3.needed) governing = nh3.days <= no3.days ? 'ammonia-N' : 'nitrate';
+  else if (nh3.needed) governing = 'ammonia-N';
+  else if (no3.needed) governing = 'nitrate';
+  const lifeDays = governing === 'ammonia-N' ? nh3.days : governing === 'nitrate' ? no3.days : NaN;
+  if (!inputsOK) { $('out_life').innerHTML = '&mdash;'; $('out_life_by').textContent = ''; }
+  else if (governing) { $('out_life').innerHTML = fmtDays(lifeDays); $('out_life_by').textContent = `set by ${governing}, at ${draw} L/day`; }
+  else { $('out_life').textContent = 'not limited'; $('out_life_by').textContent = 'both below their limits'; }
+
+  // ---- Module 3: E. coli ----
+  const alpha = Math.min(Math.max(num('ec_alpha'), 0), 1);
+  const ec = eColiRemoval(num('b_eps'), num('b_dp') / 1000, vd, alpha, biocharDepth);
+  const ecIn = num('ec_cin_n');
+  const ecOut = ecIn * (1 - ec.fraction);
+  const threshold = num('ec_threshold');
+  const chlorineTrigger = ecOut > threshold;
+
+  // ---- Module 4: chlorine dose ----
+  let dose = null;
+  if (chlorineTrigger) {
+    const residualNH3N = Math.min(num('nh3_cin_n'), num('nh3_ctarget'));
+    const totalDose = totalChlorineDose(residualNH3N, num('cl_target_residual'));
+    dose = productDose(totalDose, num('cl_volume'), parseFloat($('cl_product').value));
+  }
+
+  // ---- status banner ----
+  const mainViol = violations.filter(v => ['nh3_cin_n','no3_cin_n','ec_cin_n'].includes(v.id));
+  const banner = $('statusBanner');
+  const lifeLine = governing
+    ? `<span>Replace the biochar about every ${fmtDays(lifeDays)} (${fmt(governing === 'ammonia-N' ? nh3.volume : no3.volume, 0)} L), set by ${governing}.</span>`
+    : '<span>Ammonia-N and nitrate are both below their limits, so neither sets a replacement interval.</span>';
+  if (!inputsOK) {
+    banner.className = 'status-banner outside';
+    $('statusIcon').innerHTML = ICON_BAD;
+    $('statusTitle').textContent = 'Check the Advanced settings';
+    $('statusBody').textContent = 'A flow rate, diameter, porosity, particle size, contact time, bulk density or daily draw is zero, negative or blank.';
+    $('statusDetail').innerHTML = '';
+  } else if (mainViol.length) {
+    banner.className = 'status-banner outside';
+    $('statusIcon').innerHTML = ICON_BAD;
+    $('statusTitle').textContent = 'Outside validated range';
+    $('statusBody').textContent = 'Results below are estimates only.';
+    const parts = mainViol.map(v => `<span>${v.label} (${fmt(v.value, v.id === 'ec_cin_n' ? 0 : 1)} ${v.unit}) is outside the range tested (${v.min}&ndash;${v.max} ${v.unit}).</span>`);
+    $('statusDetail').innerHTML = parts.join('') + lifeLine;
+  } else if (chlorineTrigger) {
+    banner.className = 'status-banner attention';
+    $('statusIcon').innerHTML = ICON_WARN;
+    $('statusTitle').textContent = 'Chlorinate after the filter';
+    $('statusBody').textContent = `The filter removes about ${fmt(ec.fraction * 100, 1)}% of E. coli, leaving ${fmt(ecOut, 0)} CFU/100mL, above the ${threshold} CFU/100mL threshold.`;
+    $('statusDetail').innerHTML = (dose !== null ? `<span>Add about ${fmt(dose, 2)} g of the selected product per ${num('cl_volume')} L, then wait 30 minutes before drinking. With ammonia removed, the chlorine stays free chlorine instead of turning into monochloramine.</span>` : '') + lifeLine;
+  } else {
+    banner.className = 'status-banner';
+    $('statusIcon').innerHTML = ICON_GOOD;
+    $('statusTitle').textContent = 'Safe to drink';
+    $('statusBody').textContent = 'No further treatment needed while the media is within its replacement interval.';
+    $('statusDetail').innerHTML = lifeLine;
+  }
+
+  $('aboutText').innerHTML = `About this biochar. Maize cob charred at 412&ndash;457&deg;C and soaked in 15 g/L FeCl3 (Fe15). Fixed recipe, constants measured in this study and checked against HYDRUS-1D for NH3-N 2&ndash;15 mg/L and NO3&minus; 10&ndash;80 mg/L.`;
+
+  // ---- advanced envelope banner ----
+  const envFull = $('envelopeBannerFull');
+  if (violations.length === 0) {
+    envFull.innerHTML = `<span class="pill good">Within validated envelope</span> Every checked input falls inside a range this study measured, simulated or cited. This re-runs on every change and is a plain rule, not a trained model.`;
+  } else {
+    const items = violations.map(v => `<li><strong>${v.label}</strong> = ${fmt(v.value, 3)} ${v.unit} is outside ${v.min}&ndash;${v.max} ${v.unit}, per ${v.source}.</li>`).join('');
+    envFull.innerHTML = `<span class="pill bad">${violations.length} input${violations.length > 1 ? 's are' : ' is'} outside the validated envelope</span><ul class="envelope-list">${items}</ul>`;
+  }
+
+  const lifeRow = (name, r, Cin, U) => r.needed
+    ? `<tr><td>${name}</td><td>${fmt(Cin, 1)}</td><td>${fmt(r.qe, 3)}</td><td>${fmt(r.capacity, 0)}</td><td>${fmt(r.exhaustMin, 1)}</td><td>${fmt(U, 2)}</td><td>${fmt(r.volume, 0)}</td><td>${fmtDays(r.days)}</td></tr>`
+    : `<tr><td>${name}</td><td>${fmt(Cin, 1)}</td><td colspan="6">at or below its limit, no removal needed</td></tr>`;
+
+  $('fullReport').innerHTML = `
+    <div class="report-h">Module 1, hydraulics</div>
+    <div class="table-scroll"><table class="result-table">
+      <tr><th>Layer</th><th>Depth</th><th>&Delta;P design</th><th>&Delta;P max</th><th>U<sub>mf</sub></th></tr>
+      ${rows1}
+    </table></div>
+    <p class="report-note">Total EBCT <strong>${fmt(totalEBCT, 1)} min</strong>, biochar layer ${fmt(num('b_ebct'), 1)} min ${floorBreached ? '<span class="pill bad">below the 2 min study minimum</span>' : '<span class="pill good">at or above the 2 min study minimum</span>'}. Municipal carbon adsorbers typically use 5&ndash;25 min (NHMRC ADWG); the 2 min minimum is this study's assumption for a household bed. Gravel is structural and has no contact-time minimum. A 20 L bucket fills in <strong>${fmt(20 / Qd_L, 1)} min</strong> at ${Qd_L} L/min.</p>
+    <p class="report-note">&Delta;P at max flow <strong>${fmt(totalDPm / 9810, 4)} m water</strong> against ${num('pumpHead')} m rated head <span class="pill ${pressureOK ? 'good' : 'bad'}">${pressureOK ? 'within head' : 'check head'}</span></p>
+    <p class="report-note">Backwash ${num('backwashV')} m/h against highest U<sub>mf</sub> ${fmt(maxUmf, 1)} m/h <span class="pill ${backwashOK ? 'good' : 'bad'}">${backwashOK ? 'fluidizes' : 'does not reach Umf'}</span></p>
+    ${!backwashOK ? '<div class="mini-caveat">This backwash velocity does not reach minimum fluidization for these particle sizes and densities, so the bed cannot be expanded and should be replaced rather than backwashed. Biosand filters are not backwashed either; they are cleaned by swirl and dump (CAWST, 2009).</div>' : ''}
+    <p class="report-note">Biochar mass = ${fmt(A, 4)} m&sup2; &times; ${fmt(biocharDepth, 4)} m &times; ${num('bulkDensity')} kg/m&sup3; = <strong>${fmt(biocharMass_kg, 3)} kg</strong>. The bed is sized by flow and contact time, so contamination changes how long it lasts, not how big it is.</p>
+
+    <div class="report-h">Modules 2 and 3, bed life</div>
+    <div class="table-scroll"><table class="result-table">
+      <tr><th>Contaminant</th><th>C<sub>in</sub> mg/L</th><th>q<sub>e</sub> mg/g</th><th>Capacity mg</th><th>Full at ${Qd_L} L/min (min)</th><th>U</th><th>Usable L</th><th>Interval</th></tr>
+      ${lifeRow('Ammonia-N', nh3, num('nh3_cin_n'), num('nh3_U'))}
+      ${lifeRow('Nitrate', no3, num('no3_cin_n'), num('no3_U'))}
+    </table></div>
+    <p class="report-note">q<sub>e</sub> = K<sub>F</sub> C<sub>in</sub><sup>1/n</sup> is the equilibrium loading against the influent. Full time = capacity &divide; (Q &times; C<sub>in</sub>). For the 30 cm bed simulated in HYDRUS-1D this gives 77.9 min (ammonia-N, 8 mg/L) and 23.9 min (nitrate, 80 mg/L), against HYDRUS-1D half-breakthrough of 75.4 and 24.3 min, both within 15%. The 29.8 cm bed here gives slightly less. Usable volume applies the utilisation factor U.</p>
+
+    <div class="report-h">Design to a target interval</div>
+    ${(() => {
+      const T = num('targetDays');
+      const row = (name, r, KF) => r.needed
+        ? `<tr><td>${name}</td><td>${fmtDays(r.days)}</td><td>${fmt(biocharMass_kg * T / r.days, 2)} kg</td><td>${fmt(biocharDepth * 100 * T / r.days, 0)} cm</td><td>${fmt(KF * T / r.days, 3)} mg/g</td></tr>`
+        : `<tr><td>${name}</td><td colspan="4">no removal needed</td></tr>`;
+      return `<div class="table-scroll"><table class="result-table"><tr><th>Contaminant</th><th>Now</th><th>Mass for ${fmt(T, 0)} days</th><th>Depth at ${num('diameter')} mm</th><th>Or K<sub>F</sub> needed</th></tr>${row('Ammonia-N', nh3, num('nh3_KF'))}${row('Nitrate', no3, num('no3_KF'))}</table></div><p class="report-note">Either add biochar (mass and depth columns, same K<sub>F</sub>) or raise K<sub>F</sub> (same bed, same 1/n). Bed life scales in direct proportion to both. HYDRUS-1D confirmed this within K<sub>F</sub> &plusmn;30%, so larger changes are extrapolations to check by batch test or simulation.</p>`;
+    })()}
+
+    <div class="report-h">Module 3, E. coli</div>
+    <p class="report-note">Approach velocity ${fmt(vd * 3600, 2)} m/h, single-collector efficiency &eta;<sub>0</sub> = <strong>${ec.eta0.toExponential(2)}</strong>, &alpha; = ${fmt(alpha, 2)}, biochar depth ${fmt(biocharDepth * 100, 1)} cm. Removal = 1 &minus; exp(&minus;1.5(1&minus;&epsilon;)&eta;<sub>0</sub>&alpha;L/d<sub>c</sub>) = <strong>${fmt(ec.fraction * 100, 2)}%</strong> (${fmt(-Math.log10(1 - ec.fraction), 3)} log). Filtrate <strong>${fmt(ecOut, 0)} CFU/100mL</strong>.</p>
+    <p class="report-note">HYDRUS-1D gave 3.7% at &alpha; = 1 and 0.4% at &alpha; = 0.1 for this bed, so the bed is not an E. coli barrier by itself. Captured cells are held, not killed.</p>
+
+    <div class="report-h">Module 4, chlorination</div>
+    <p class="report-note">${chlorineTrigger ? `Triggered. Dose = ${BREAKPOINT_MASS_RATIO} &times; ${fmt(Math.min(num('nh3_cin_n'), num('nh3_ctarget')), 2)} mg/L NH3-N + ${num('cl_target_residual')} mg/L residual = ${fmt(totalChlorineDose(Math.min(num('nh3_cin_n'), num('nh3_ctarget')), num('cl_target_residual')), 2)} mg/L Cl2, about <strong>${fmt(dose, 2)} g</strong> of product per ${num('cl_volume')} L.` : 'Not triggered at these inputs.'}</p>
+  `;
+}
+
+syncOverrideUI();
+recompute();
+</script>
+
+</body>
+</html>

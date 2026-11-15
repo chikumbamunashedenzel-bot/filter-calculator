@@ -1,0 +1,14 @@
+{
+  "name": "Borehole Filter Calculator",
+  "short_name": "Filter Calc",
+  "description": "Parametric design calculator for low-cost inline borehole water filters (Fe15 maize-cob biochar).",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f6f4",
+  "theme_color": "#0e7c66",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
