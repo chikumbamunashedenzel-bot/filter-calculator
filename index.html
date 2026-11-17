@@ -3,16 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Borehole Filter Calculator</title>
 <meta name="theme-color" content="#0e7c66">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Filter Calc">
 </head>
 <body>
-<title>Borehole Filter Calculator</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <style>
   :root {
     --bg: #f3f6f4;
@@ -174,6 +171,42 @@
   .report-note { font-size: 0.76rem; color: var(--muted); margin: 8px 0 0; }
   .envelope-list { margin: 6px 0 0; padding-left: 18px; font-size: 0.78rem; }
   .envelope-list li { margin-bottom: 3px; }
+
+  .reduce-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
+  .reduce-head { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em; color: var(--muted); margin-bottom: 8px; }
+  table.reduce-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+  table.reduce-table th { text-align: left; font-weight: 600; font-size: 0.72rem; color: var(--muted); padding: 4px 6px; border-bottom: 1px solid var(--line); }
+  table.reduce-table td { padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.reduce-table tr:last-child td { border-bottom: none; }
+  table.reduce-table .big { font-size: 1.02rem; font-weight: 700; }
+  table.reduce-table .sub { display: block; font-size: 0.7rem; color: var(--muted); }
+  .reduce-note { font-size: 0.74rem; color: var(--muted); margin-top: 8px; }
+  @media (max-width: 560px) { table.reduce-table { font-size: 0.78rem; } table.reduce-table .big { font-size: 0.9rem; } table.reduce-table td, table.reduce-table th { padding: 6px 4px; } }
+  .record-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 13px 16px; margin-bottom: 14px; }
+  .record-card label { font-size: 0.72rem; font-weight: 600; color: var(--muted); display: block; margin-bottom: 5px; }
+  .record-card input { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 0.86rem; background: var(--field-bg); color: var(--ink); font-family: inherit; }
+  .record-buttons { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .record-buttons .btn { flex: 1 1 160px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+  .record-hint { font-size: 0.7rem; color: var(--muted); margin-top: 7px; }
+  #printArea { display: none; }
+  @media print {
+    body { background: #fff !important; color: #000 !important; padding: 0 !important; }
+    body > *:not(#printArea) { display: none !important; }
+    #printArea { display: block !important; }
+  }
+  #printArea, #printArea * { color: #000; }
+  #printArea { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.4; }
+  #printArea h1 { font-size: 16pt; margin: 0 0 4px; }
+  #printArea h2 { font-size: 12pt; margin: 16px 0 6px; border-bottom: 1px solid #999; padding-bottom: 2px; }
+  #printArea table { border-collapse: collapse; width: 100%; font-size: 9.5pt; margin: 4px 0; }
+  #printArea th, #printArea td { border: 1px solid #bbb; padding: 3px 5px; text-align: left; vertical-align: top; white-space: normal; }
+  #printArea th { background: #eee; }
+  #printArea .meta { font-size: 9.5pt; color: #333; }
+  #printArea .pill { border: 1px solid #999; padding: 0 5px; border-radius: 8px; font-size: 8.5pt; }
+  #printArea .note { font-size: 9pt; color: #333; }
+  #printArea .sub { display: block; font-size: 8.5pt; color: #555; }
+  #printArea .big { font-weight: 700; }
+  #printArea .report-h { font-weight: 700; margin: 12px 0 4px; text-transform: uppercase; font-size: 9pt; }
 </style>
 
 <div class="wrap">
@@ -249,6 +282,22 @@
     </div>
   </div>
 
+  <div class="reduce-card" id="reduceCard">
+    <div class="reduce-head">WHAT THIS BED REMOVES</div>
+    <div class="table-scroll"><table class="reduce-table" id="reduceTable"></table></div>
+    <div class="reduce-note" id="reduceNote"></div>
+  </div>
+
+  <div class="record-card">
+    <label for="siteName">Borehole or household name (optional, for your records)</label>
+    <input type="text" id="siteName" placeholder="e.g. Stand 1234, Hopley" maxlength="80">
+    <div class="record-buttons">
+      <button type="button" class="btn" id="printBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>Print or save as PDF</button>
+      <button type="button" class="btn primary" id="downloadBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>Download record</button>
+    </div>
+    <div class="record-hint">The record holds every input, the results and the full technical report, with the date and time. Choose “Save as PDF” in the print window to keep a PDF.</div>
+  </div>
+
   <div class="about-card">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
     <span id="aboutText">About this biochar.</span>
@@ -256,11 +305,12 @@
 
   <footer>
     Preliminary sizing tool implementing Equations 3.1&ndash;3.4 (Chapter 3), with this study's measured Fe15 isotherm constants and HYDRUS-1D derived bed-life factors. Tap <strong>Advanced</strong> for the full technical report, every assumption, and the fields you can change.<br>
-    Version 2.2, 15 November 2026. Source attributions corrected after fact-check.
+    Version 2.3, 17 November 2026. Adds the contaminant reduction of the bed and a printable, downloadable design record.
   </footer>
 
 </div>
 
+<div id="printArea" aria-hidden="true"></div>
 <div class="backdrop" id="backdrop"></div>
 <div class="panel" id="advPanel" aria-hidden="true">
   <div class="panel-head">
@@ -614,6 +664,25 @@ function recompute() {
   const threshold = num('ec_threshold');
   const chlorineTrigger = ecOut > threshold;
 
+  // ---- What this bed removes (v2.3) ----
+  const fmtMass = (mg) => !Number.isFinite(mg) ? '&mdash;' : (mg >= 1000 ? fmt(mg / 1000, 2) + '&nbsp;g' : fmt(mg, 0) + '&nbsp;mg');
+  const redRow = (name, r, Cin, limit, unit, U) => {
+    if (!inputsOK) return `<tr><td>${name}</td><td colspan="2">&mdash;</td></tr>`;
+    if (!r.needed) return `<tr><td><strong>${name}</strong><span class="sub">${fmt(Cin, 1)} mg/L in</span></td><td colspan="2">Already within the ${fmt(limit, 1)} ${unit} limit, no removal needed</td></tr>`;
+    const minRed = (Cin - limit) / Cin * 100;
+    const removed = U * r.capacity;
+    return `<tr><td><strong>${name}</strong><span class="sub">${fmt(Cin, 1)} mg/L in, limit ${fmt(limit, 1)}</span></td>`
+      + `<td><span class="big">at least ${fmt(minRed, 1)}%</span><span class="sub">over 99% while the bed is fresh</span></td>`
+      + `<td><span class="big">about ${fmtMass(removed)}</span><span class="sub">from about ${fmt(r.volume, 0)} L of water</span></td></tr>`;
+  };
+  $('reduceTable').innerHTML = `<tr><th>Contaminant</th><th>Reduction until replacement</th><th>Removed by this bed</th></tr>`
+    + redRow('Ammonia-N', nh3, num('nh3_cin_n'), num('nh3_ctarget'), 'mg/L', num('nh3_U'))
+    + redRow('Nitrate', no3, num('no3_cin_n'), num('no3_ctarget'), 'mg/L', num('no3_U'))
+    + (inputsOK ? `<tr><td><strong>E. coli</strong><span class="sub">${fmt(ecIn, 0)} CFU/100mL in</span></td><td><span class="big">about ${fmt(ec.fraction * 100, 1)}%</span><span class="sub">trapped, not killed</span></td><td><span class="big">not a barrier</span><span class="sub">chlorinate after the filter</span></td></tr>` : '');
+  $('reduceNote').innerHTML = inputsOK
+    ? `For a ${fmt(biocharMass_kg, 2)} kg bed ${fmt(biocharDepth * 100, 1)} cm deep. A fresh bed removes nearly all of the ammonia-N and nitrate (over 99% in the HYDRUS-1D check of the design case). Removal falls as the bed fills, and the lowest value shown is reached just before the replacement date, when the outlet reaches the limit. Replace on time to keep at least this reduction.`
+    : '';
+
   // ---- Module 4: chlorine dose ----
   let dose = null;
   if (chlorineTrigger) {
@@ -708,10 +777,73 @@ function recompute() {
   `;
 }
 
+// ---------- design record: print and download (v2.3) ----------
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function buildRecordBody() {
+  recompute();
+  const now = new Date();
+  const stamp = now.toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'short' });
+  const site = $('siteName').value.trim();
+  const product = $('cl_product').options[$('cl_product').selectedIndex].text;
+  const row = (k, v) => `<tr><th>${k}</th><td>${v}</td></tr>`;
+  const inputs = [
+    ['Ammonia-N in borehole water', `${num('nh3_cin_n')} mg/L as N`],
+    ['Nitrate in borehole water', `${num('no3_cin_n')} mg/L as NO3-`],
+    ['E. coli in borehole water', `${num('ec_cin_n')} CFU/100 mL`],
+    ['Design and maximum flow', `${num('Q_design')} and ${num('Q_max')} L/min`],
+    ['Housing internal diameter', `${num('diameter')} mm`],
+    ['Daily use of filtered water', `${num('dailyDraw')} L/day`],
+    ['Medium constants', overrideOn ? 'Entered by the user (different batch or medium)' : "This study's measured Fe15 maize-cob biochar"],
+    ['KF and 1/n, ammonia-N', `${num('nh3_KF')} mg/g and ${num('nh3_invn')}`],
+    ['KF and 1/n, nitrate', `${num('no3_KF')} mg/g and ${num('no3_invn')}`],
+    ['Bulk density of the medium', `${num('bulkDensity')} kg/m3`],
+    ['Biochar contact time', `${num('b_ebct')} min`],
+    ['Utilisation factor U, ammonia-N and nitrate', `${num('nh3_U')} and ${num('no3_U')}`],
+    ['Limits, ammonia-N and nitrate', `${num('nh3_ctarget')} and ${num('no3_ctarget')} mg/L`],
+    ['Chlorination product', esc(product)],
+  ].map(r => row(r[0], r[1])).join('');
+  const results = [
+    ['Biochar in bed', $('out_biochar').textContent],
+    ['Bed depth', $('out_depth').textContent],
+    ['Replace media every', `${$('out_life').textContent} ${$('out_life_by').textContent}`],
+    ['Status', `${esc($('statusTitle').textContent)}. ${esc($('statusBody').textContent)}`],
+    ['Advice', esc(Array.from($('statusDetail').children).map(e => e.textContent.trim()).join(' '))],
+  ].map(r => row(r[0], r[1])).join('');
+  return `<h1>Borehole Filter Calculator: design record</h1>
+<div class="meta">${site ? `<strong>Borehole or household:</strong> ${esc(site)}<br>` : ''}<strong>Date and time:</strong> ${esc(stamp)}<br><strong>Calculator:</strong> version 2.3, https://chikumbamunashedenzel-bot.github.io/filter-calculator/</div>
+<h2>Inputs</h2><table>${inputs}</table>
+<h2>Results</h2><table>${results}</table>
+<h2>What this bed removes</h2><table>${$('reduceTable').innerHTML}</table>
+<p class="note">${$('reduceNote').innerHTML}</p>
+<h2>Validated range check</h2><div class="note">${$('envelopeBannerFull').innerHTML}</div>
+<h2>Full technical report</h2>${$('fullReport').innerHTML}
+<p class="note">Preliminary sizing tool from a BSc Environmental Engineering study (Chinhoyi University of Technology). Results assume the bed is replaced on schedule and the filtered water is chlorinated as advised. Confirm with a water test before relying on the filter.</p>`;
+}
+$('printBtn').addEventListener('click', () => {
+  $('printArea').innerHTML = buildRecordBody();
+  window.print();
+});
+$('downloadBtn').addEventListener('click', () => {
+  const bodyHTML = buildRecordBody();
+  const css = `body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#000;background:#fff;max-width:820px;margin:24px auto;padding:0 16px}h1{font-size:16pt;margin:0 0 4px}h2{font-size:12pt;margin:18px 0 6px;border-bottom:1px solid #999;padding-bottom:2px}table{border-collapse:collapse;width:100%;font-size:9.5pt;margin:4px 0}th,td{border:1px solid #bbb;padding:3px 5px;text-align:left;vertical-align:top}th{background:#eee}.meta,.note,.report-note,.mini-caveat{font-size:9.5pt;color:#333}.pill{border:1px solid #999;padding:0 5px;border-radius:8px;font-size:8.5pt}.sub{display:block;font-size:8.5pt;color:#555}.big{font-weight:700}.report-h{font-weight:700;margin:12px 0 4px;text-transform:uppercase;font-size:9pt}`;
+  const doc = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Filter design record</title><style>${css}</style></head><body>${bodyHTML}</body></html>`;
+  const site = $('siteName').value.trim().replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40);
+  const d = new Date(); const pad = n => String(n).padStart(2, '0');
+  const name = `Filter_design_record_${site ? site + '_' : ''}${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.html`;
+  const blob = new Blob([doc], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+});
+
 syncOverrideUI();
 recompute();
 </script>
-
-<script>if ("serviceWorker" in navigator && location.protocol.startsWith("http")) { navigator.serviceWorker.register("sw.js"); }</script>
+<script>
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+</script>
 </body>
 </html>

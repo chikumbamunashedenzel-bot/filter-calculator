@@ -1,18 +1,11 @@
-Borehole Filter Calculator, offline app (Version 2.2)
+Borehole Filter Calculator, version 2.3 (17 November 2026)
 
-Option A, simplest
-  Open Borehole_Filter_Calculator.html (the single file) in any browser. It needs no internet.
-  Copy it to a laptop, a flash drive or a phone and open it from there.
+New in 2.3
+- "What this bed removes": the reduction of ammonia-N and nitrate until replacement, the mass each bed removes, and E. coli.
+- "Print or save as PDF" and "Download record": a dated record of every input, the results and the full technical report.
 
-Option B, install as a phone or computer app that works offline
-  1. Put the four files in this folder (index.html, manifest.webmanifest, sw.js, the two icons)
-     on any free HTTPS host, for example GitHub Pages:
-       - create a free GitHub account and a new public repository, e.g. filter-calculator
-       - Add file > Upload files, drag in every file from this folder, Commit
-       - Settings > Pages > Source: Deploy from a branch > main > / (root) > Save
-       - after a minute the app is at https://YOUR-USERNAME.github.io/filter-calculator/
-  2. Open that link once while online.
-     Android (Chrome): menu > Add to Home screen / Install app.
-     iPhone (Safari): Share > Add to Home Screen.
-     Computer (Chrome or Edge): install icon in the address bar.
-  3. From then on it opens from the home screen with no internet.
+Online:  https://chikumbamunashedenzel-bot.github.io/filter-calculator/
+Offline: open Borehole_Filter_Calculator.html in any web browser, no internet needed.
+Phone:   open the online link once, then use "Add to Home screen"; it then works offline.
+
+To update GitHub: upload ALL files in this folder to the repository, replacing the old ones.
